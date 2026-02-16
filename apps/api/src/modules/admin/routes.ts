@@ -1,0 +1,15 @@
+import { Router } from 'express';
+import { authenticate, requireAdmin } from '../../middleware/auth';
+import * as ctrl from './controller';
+export const adminRouter = Router();
+adminRouter.use(authenticate, requireAdmin);
+adminRouter.get('/stats', ctrl.getStats);
+adminRouter.get('/users', ctrl.listUsers);
+adminRouter.patch('/users/:id/ban', ctrl.banUser);
+adminRouter.get('/activities', ctrl.listActivities);
+adminRouter.post('/activities', ctrl.createActivity);
+adminRouter.patch('/activities/:id', ctrl.updateActivity);
+adminRouter.delete('/activities/:id', ctrl.deleteActivity);
+adminRouter.post('/notifications/send', ctrl.sendNotification);
+adminRouter.get('/settings', ctrl.getSettings);
+adminRouter.patch('/settings', ctrl.updateSettings);

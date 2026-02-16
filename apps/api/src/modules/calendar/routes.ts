@@ -1,0 +1,11 @@
+import { Router } from 'express';
+import { body } from 'express-validator';
+import { authenticate } from '../../middleware/auth';
+import { validate } from '../../middleware/validate';
+import * as ctrl from './controller';
+export const calendarRouter = Router();
+calendarRouter.use(authenticate);
+calendarRouter.get('/', ctrl.listEvents);
+calendarRouter.post('/', body('title').isLength({min:1,max:120}), body('starts_at').isISO8601(), body('ends_at').isISO8601(), validate, ctrl.createEvent);
+calendarRouter.get('/:id', ctrl.getEvent);
+calendarRouter.post('/:id/rsvp', body('status').isIn(['going','maybe','declined']), validate, ctrl.rsvp);

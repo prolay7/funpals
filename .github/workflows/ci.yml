@@ -1,0 +1,73 @@
+name: Funpals CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test-api:
+    name: API Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER:     funpals
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB:       funpals_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: --health-cmd "redis-cli ping" --health-interval 10s
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm' }
+      - run: cd apps/api && npm ci
+      - name: Run migrations
+        run: cd apps/api && npm run migrate:test
+        env:
+          NODE_ENV:          test
+          DATABASE_TEST_URL: postgresql://funpals:testpass@localhost:5432/funpals_test
+          REDIS_URL:         redis://localhost:6379
+          JWT_SECRET:        test_jwt_secret_must_be_at_least_32_chars_long
+      - name: Run tests
+        run: cd apps/api && npm run test:coverage
+        env:
+          NODE_ENV:          test
+          DATABASE_TEST_URL: postgresql://funpals:testpass@localhost:5432/funpals_test
+          REDIS_URL:         redis://localhost:6379
+          JWT_SECRET:        test_jwt_secret_must_be_at_least_32_chars_long
+      - run: cd apps/api && npm run lint
+
+  test-mobile:
+    name: Mobile Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm' }
+      - run: cd apps/mobile && npm ci
+      - run: cd apps/mobile && npm test
+      - run: cd apps/mobile && npm run typescript
+
+  build-admin:
+    name: Admin Panel Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm' }
+      - run: cd apps/admin && npm ci
+      - run: cd apps/admin && npm run build
+        env:
+          VITE_API_BASE_URL: https://api.funpals.com/api/v1

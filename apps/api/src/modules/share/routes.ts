@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import { body } from 'express-validator';
+import { authenticate } from '../../middleware/auth';
+import { validate } from '../../middleware/validate';
+import * as ctrl from './controller';
+export const shareRouter = Router();
+shareRouter.use(authenticate);
+shareRouter.post('/internal', body('content').isLength({min:1,max:2000}), body('channel_id').isUUID(), validate, ctrl.shareInternal);
+shareRouter.get('/global', ctrl.getGlobalFeed);
+shareRouter.post('/global', body('content').isLength({min:1,max:2000}), validate, ctrl.shareGlobal);

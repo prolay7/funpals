@@ -1,0 +1,19 @@
+{
+  "name": "funpals",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Funpals – React Native social app (iOS/Android), Node.js API, React Admin Panel",
+  "workspaces": ["apps/api", "apps/admin", "packages/shared-types", "packages/shared-utils"],
+  "scripts": {
+    "dev:api":   "npm run dev --workspace=apps/api",
+    "dev:admin": "npm run dev --workspace=apps/admin",
+    "test":      "npm run test --workspaces --if-present",
+    "test:api":  "npm run test --workspace=apps/api",
+    "lint":      "npm run lint --workspaces --if-present",
+    "build":     "npm run build --workspaces --if-present",
+    "ci":        "npm run lint && npm run build && npm run test"
+  },
+  "devDependencies": { "prettier": "^3.3.3" },
+  "prettier": { "singleQuote": true, "trailingComma": "all", "semi": true, "printWidth": 100 },
+  "engines": { "node": ">=20.0.0", "npm": ">=10.0.0" }
+}
