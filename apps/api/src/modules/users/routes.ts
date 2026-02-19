@@ -18,4 +18,5 @@ userRouter.post('/me/photo', authenticate, upload.single('photo'), ctrl.uploadPh
 userRouter.get('/me/goal', authenticate, ctrl.getGoal);
 userRouter.patch('/me/goal', authenticate,
   body('daily_goal').isLength({ max: 280 }).trim(), validate, ctrl.setGoal);
+userRouter.get('/online', authenticate, ctrl.getOnlineUsers);
 userRouter.get('/:id', authenticate, ctrl.getUserById);

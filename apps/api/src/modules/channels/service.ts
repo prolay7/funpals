@@ -52,6 +52,22 @@ export async function saveMessage(data: { channelId: string; senderId: string; c
   return rows[0];
 }
 
+/** listConversations — Returns all DM (private) channels for a user */
+export async function listConversations(userId: string) {
+  const { rows } = await db.query(
+    `SELECT c.id, c.name, c.type, c.photo_url,
+            (SELECT json_build_object('content', m.content, 'created_at', m.created_at, 'sender_id', m.sender_id)
+             FROM messages m WHERE m.channel_id = c.id AND m.is_deleted = FALSE
+             ORDER BY m.created_at DESC LIMIT 1) AS last_message
+     FROM channels c
+     JOIN channel_members cm ON c.id = cm.channel_id
+     WHERE cm.user_id = $1 AND c.type = 'private' AND c.deleted_at IS NULL
+     ORDER BY c.created_at DESC`,
+    [userId],
+  );
+  return rows;
+}
+
 export async function getMessages(channelId: string, queryParams: Record<string, unknown>) {
   const { limit, cursor } = parsePaginationQuery(queryParams);
   const { rows } = await db.query(

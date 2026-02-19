@@ -48,18 +48,48 @@ export async function updateUserProfile(userId: string, data: Record<string, unk
   finally { client.release(); }
 }
 
-export async function saveProfilePhoto(userId: string, buffer: Buffer, mimetype: string): Promise<string> {
-  const ext = 'webp';
-  const filename = `${userId}-${Date.now()}.${ext}`;
-  const uploadDir = path.resolve(env.MEDIA_UPLOAD_PATH);
-  if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-  const outputPath = path.join(uploadDir, filename);
-  // Resize to 400x400, convert to WebP for optimal performance
-  await sharp(buffer).resize(400, 400, { fit: 'cover' }).webp({ quality: 85 }).toFile(outputPath);
-  const photoUrl = `${env.MEDIA_BASE_URL}/${filename}`;
+export async function saveProfilePhoto(userId: string, buffer: Buffer, _mimetype: string): Promise<string> {
+  // Always resize+compress with Sharp first
+  const webpBuffer = await sharp(buffer).resize(400, 400, { fit: 'cover' }).webp({ quality: 85 }).toBuffer();
+  let photoUrl: string;
+
+  if (env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET) {
+    const cloudinary = await import('cloudinary');
+    cloudinary.v2.config({
+      cloud_name: env.CLOUDINARY_CLOUD_NAME,
+      api_key:    env.CLOUDINARY_API_KEY,
+      api_secret: env.CLOUDINARY_API_SECRET,
+    });
+    const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
+      cloudinary.v2.uploader.upload_stream(
+        { folder: 'funpals/avatars', public_id: `avatar-${userId}`, overwrite: true, format: 'webp' },
+        (err, res) => { if (err || !res) reject(err ?? new Error('Cloudinary error')); else resolve(res); },
+      ).end(webpBuffer);
+    });
+    photoUrl = result.secure_url;
+  } else {
+    const filename = `${userId}-${Date.now()}.webp`;
+    const uploadDir = path.resolve(env.MEDIA_UPLOAD_PATH);
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+    fs.writeFileSync(path.join(uploadDir, filename), webpBuffer);
+    photoUrl = `${env.MEDIA_BASE_URL}/${filename}`;
+  }
+
   await db.query('UPDATE users SET photo_url = $1, updated_at = NOW() WHERE id = $2', [photoUrl, userId]);
   await invalidateCache(`profile:${userId}`);
   return photoUrl;
+}
+
+export async function listOnlineUsers() {
+  const { rows } = await db.query(
+    `SELECT u.id, u.display_name, u.photo_url, u.username,
+            op.is_on_call, op.available_call, op.last_seen
+     FROM online_presence op
+     JOIN users u ON op.user_id = u.id
+     WHERE op.is_online = TRUE AND u.deleted_at IS NULL
+     ORDER BY op.last_seen DESC LIMIT 50`,
+  );
+  return rows;
 }
 
 export async function getTodaysGoal(userId: string) {

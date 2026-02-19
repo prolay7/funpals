@@ -13,3 +13,7 @@ adminRouter.delete('/activities/:id', ctrl.deleteActivity);
 adminRouter.post('/notifications/send', ctrl.sendNotification);
 adminRouter.get('/settings', ctrl.getSettings);
 adminRouter.patch('/settings', ctrl.updateSettings);
+adminRouter.get('/materials', ctrl.listMaterials);
+adminRouter.post('/materials', ctrl.createMaterial);
+adminRouter.patch('/materials/:id', ctrl.updateMaterial);
+adminRouter.delete('/materials/:id', ctrl.deleteMaterial);

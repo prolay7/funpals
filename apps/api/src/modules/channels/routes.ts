@@ -14,3 +14,9 @@ channelRouter.post('/:id/join', ctrl.joinChannel);
 channelRouter.delete('/:id/leave', ctrl.leaveChannel);
 channelRouter.post('/:id/favorite', ctrl.toggleFavorite);
 channelRouter.get('/:id/messages', query('limit').optional().isInt({ min: 1, max: 100 }), validate, ctrl.getMessages);
+
+// Separate conversations router export — mounted at /conversations in app.ts
+import { Router as ConvRouter } from 'express';
+export const conversationRouter = ConvRouter();
+conversationRouter.use(authenticate);
+conversationRouter.get('/', ctrl.listConversations);

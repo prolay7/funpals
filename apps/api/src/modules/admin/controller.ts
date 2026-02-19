@@ -38,4 +38,8 @@ export const sendNotification = async (req: Request, res: Response, next: NextFu
   } catch (e) { next(e); }
 };
 export const getSettings    = async (req: Request, res: Response, next: NextFunction) => { try { res.json({ data: await svc.getAppSettings() }); } catch (e) { next(e); } };
-export const updateSettings = async (req: Request, res: Response, next: NextFunction) => { try { res.json({ success: true }); } catch (e) { next(e); } };
+export const updateSettings = async (req: Request, res: Response, next: NextFunction) => { try { res.json({ data: await svc.updateAppSettings(req.body) }); } catch (e) { next(e); } };
+export const listMaterials  = async (req: Request, res: Response, next: NextFunction) => { try { res.json({ data: await svc.listMaterials(req.query.search as string) }); } catch (e) { next(e); } };
+export const createMaterial = async (req: Request, res: Response, next: NextFunction) => { try { res.status(201).json({ data: await svc.createMaterial(req.body) }); } catch (e) { next(e); } };
+export const updateMaterial = async (req: Request, res: Response, next: NextFunction) => { try { res.json({ data: await svc.updateMaterial(req.params.id, req.body) }); } catch (e) { next(e); } };
+export const deleteMaterial = async (req: Request, res: Response, next: NextFunction) => { try { await svc.deleteMaterial(req.params.id); res.json({ success: true }); } catch (e) { next(e); } };

@@ -75,6 +75,61 @@ export async function refreshTokens(refreshToken: string) {
   return issueTokens(userRows[0].id, userRows[0].role);
 }
 
+/**
+ * googleSignIn — Verifies Google ID token, creates or returns user.
+ * @throws ApiError 401 if token is invalid
+ */
+export async function googleSignIn(idToken: string) {
+  if (!env.GOOGLE_CLIENT_ID) throw new ApiError(503, 'Google OAuth not configured');
+  const { OAuth2Client } = await import('google-auth-library');
+  const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
+  let ticket;
+  try {
+    ticket = await client.verifyIdToken({ idToken, audience: env.GOOGLE_CLIENT_ID });
+  } catch {
+    throw new ApiError(401, 'Invalid Google token');
+  }
+  const payload = ticket.getPayload();
+  if (!payload?.email) throw new ApiError(401, 'Google token missing email');
+
+  // Find existing user or create
+  const { rows: existing } = await db.query(
+    'SELECT id, email, username, display_name, role FROM users WHERE email=$1 AND deleted_at IS NULL',
+    [payload.email],
+  );
+  if (existing.length) {
+    // Update google_id if not set
+    await db.query('UPDATE users SET updated_at=NOW() WHERE id=$1', [existing[0].id]);
+    return { user: existing[0], tokens: issueTokens(existing[0].id, existing[0].role), isNew: false };
+  }
+
+  // Auto-generate username from email prefix
+  const baseUsername = payload.email.split('@')[0].replace(/[^a-z0-9_]/gi, '').slice(0, 28);
+  let username = baseUsername;
+  let suffix = 1;
+  while (true) {
+    const { rows: taken } = await db.query('SELECT id FROM users WHERE username=$1', [username]);
+    if (!taken.length) break;
+    username = `${baseUsername}${suffix++}`;
+  }
+
+  const dbClient = await db.getClient();
+  try {
+    await dbClient.query('BEGIN');
+    const { rows } = await dbClient.query(
+      `INSERT INTO users (email, password_hash, username, display_name, photo_url)
+       VALUES ($1,'',  $2,   $3,          $4) RETURNING id, email, username, display_name, role`,
+      [payload.email, username, payload.name ?? username, payload.picture ?? null],
+    );
+    const user = rows[0];
+    await dbClient.query('INSERT INTO user_profiles (user_id, available_for) VALUES ($1,$2)', [user.id, ['']]);
+    await dbClient.query('INSERT INTO online_presence (user_id) VALUES ($1)', [user.id]);
+    await dbClient.query('COMMIT');
+    return { user, tokens: issueTokens(user.id, user.role), isNew: true };
+  } catch (e) { await dbClient.query('ROLLBACK'); throw e; }
+  finally { dbClient.release(); }
+}
+
 /** revokeRefreshToken — Used on logout */
 export async function revokeRefreshToken(refreshToken: string): Promise<void> {
   await db.query('DELETE FROM refresh_tokens WHERE token = $1', [refreshToken]);

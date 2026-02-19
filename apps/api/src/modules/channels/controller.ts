@@ -41,3 +41,6 @@ export const toggleFavorite = async (req: Request, res: Response, next: NextFunc
 export const getMessages   = async (req: Request, res: Response, next: NextFunction) => {
   try { res.json({ data: await svc.getMessages(req.params.id, req.query as Record<string,unknown>) }); } catch (e) { next(e); }
 };
+export const listConversations = async (req: Request, res: Response, next: NextFunction) => {
+  try { res.json({ data: await svc.listConversations(req.user!.id) }); } catch (e) { next(e); }
+};

@@ -19,5 +19,8 @@ authRouter.post('/login', authLimit,
   body('password').notEmpty(),
   validate, ctrl.login);
 
+authRouter.post('/google', authLimit,
+  body('id_token').notEmpty().withMessage('Google ID token is required'),
+  validate, ctrl.googleSignIn);
 authRouter.post('/refresh', ctrl.refresh);
 authRouter.post('/logout', ctrl.logout);

@@ -22,6 +22,13 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
   } catch (e) { next(e); }
 };
 
+export const googleSignIn = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = await svc.googleSignIn(req.body.id_token);
+    res.status(result.isNew ? 201 : 200).json(result);
+  } catch (e) { next(e); }
+};
+
 export const logout = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { refreshToken } = req.body;

@@ -20,6 +20,9 @@ export const getGoal = async (req: Request, res: Response, next: NextFunction) =
 export const setGoal = async (req: Request, res: Response, next: NextFunction) => {
   try { await svc.setTodaysGoal(req.user!.id, req.body.daily_goal); res.json({ success: true }); } catch (e) { next(e); }
 };
+export const getOnlineUsers = async (req: Request, res: Response, next: NextFunction) => {
+  try { res.json({ data: await svc.listOnlineUsers() }); } catch (e) { next(e); }
+};
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const profile = await svc.getUserProfile(req.params.id);

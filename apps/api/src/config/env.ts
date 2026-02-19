@@ -23,6 +23,14 @@ const envSchema = z.object({
   APNS_KEY_PATH:           z.string().optional(),
   APNS_PRODUCTION:         z.string().default('false'),
   FCM_SERVER_KEY:          z.string().optional(),
+  GOOGLE_CLIENT_ID:        z.string().optional(),
+  GOOGLE_CLIENT_SECRET:    z.string().optional(),
+  CLOUDINARY_CLOUD_NAME:   z.string().optional(),
+  CLOUDINARY_API_KEY:      z.string().optional(),
+  CLOUDINARY_API_SECRET:   z.string().optional(),
+  STREAM_API_KEY:          z.string().optional(),
+  STREAM_API_SECRET:       z.string().optional(),
+  LOCATION_IQ_KEY:         z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
