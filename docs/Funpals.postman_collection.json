@@ -1,0 +1,1175 @@
+{
+  "info": {
+    "name": "Funpals API",
+    "description": "Complete Postman collection for the Funpals REST API (v1).\n\n**Setup:**\n1. Import this collection.\n2. Create a Postman Environment with the variable `baseUrl` set to `http://localhost:3000`.\n3. Call **Auth → Register** or **Auth → Login** — the `accessToken` and `refreshToken` collection variables are set automatically by the test scripts.\n4. All authenticated requests use `{{accessToken}}` in the Authorization header automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    { "key": "baseUrl",      "value": "http://localhost:3000",  "type": "string" },
+    { "key": "accessToken",  "value": "",                       "type": "string" },
+    { "key": "refreshToken", "value": "",                       "type": "string" },
+    { "key": "userId",       "value": "",                       "type": "string" },
+    { "key": "channelId",    "value": "",                       "type": "string" },
+    { "key": "groupId",      "value": "",                       "type": "string" },
+    { "key": "meetingId",    "value": "",                       "type": "string" },
+    { "key": "skillId",      "value": "",                       "type": "string" },
+    { "key": "goalId",       "value": "",                       "type": "string" },
+    { "key": "categoryId",   "value": "",                       "type": "string" },
+    { "key": "materialId",   "value": "",                       "type": "string" },
+    { "key": "activityId",   "value": "",                       "type": "string" },
+    { "key": "targetUserId", "value": "",                       "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "item": [
+
+    {
+      "name": "Auth",
+      "description": "Authentication endpoints. Rate-limited to 10 req/min.",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const b = pm.response.json();",
+                  "  pm.collectionVariables.set('accessToken',  b.tokens.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', b.tokens.refreshToken);",
+                  "  pm.collectionVariables.set('userId', b.user.id);",
+                  "  pm.test('Register succeeds', () => pm.response.to.have.status(201));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@funpals.com\",\n  \"password\": \"TestPass123!\",\n  \"username\": \"testuser\",\n  \"display_name\": \"Test User\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/register", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","register"] }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const b = pm.response.json();",
+                  "  pm.collectionVariables.set('accessToken',  b.tokens.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', b.tokens.refreshToken);",
+                  "  pm.collectionVariables.set('userId', b.user.id);",
+                  "  pm.test('Login succeeds', () => pm.response.to.have.status(200));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@funpals.com\",\n  \"password\": \"TestPass123!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","login"] }
+          }
+        },
+        {
+          "name": "Google Sign-In",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_token\": \"<GOOGLE_ID_TOKEN_FROM_CLIENT_SDK>\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/google", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","google"] }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const b = pm.response.json();",
+                  "  pm.collectionVariables.set('accessToken',  b.tokens.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', b.tokens.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","refresh"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/logout", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","logout"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Users",
+      "description": "User profile management.",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/users/me", "host": ["{{baseUrl}}"], "path": ["api","v1","users","me"] }
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"display_name\": \"Updated Name\",\n  \"available_for\": [\"chess\", \"coding\"],\n  \"expertise_level\": 3\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/users/me", "host": ["{{baseUrl}}"], "path": ["api","v1","users","me"] }
+          }
+        },
+        {
+          "name": "Upload Profile Photo",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "photo", "type": "file", "src": "", "description": "Image file (max 10 MB). Resized to 400×400 WebP and uploaded to Cloudinary (or saved locally if Cloudinary is not configured)." }]
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/users/me/photo", "host": ["{{baseUrl}}"], "path": ["api","v1","users","me","photo"] }
+          }
+        },
+        {
+          "name": "Get My Daily Goal",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/users/me/goal", "host": ["{{baseUrl}}"], "path": ["api","v1","users","me","goal"] }
+          }
+        },
+        {
+          "name": "Set My Daily Goal",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"daily_goal\": \"Practice chess for 30 minutes\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/users/me/goal", "host": ["{{baseUrl}}"], "path": ["api","v1","users","me","goal"] }
+          }
+        },
+        {
+          "name": "List Online Users",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/users/online", "host": ["{{baseUrl}}"], "path": ["api","v1","users","online"] }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/users/{{targetUserId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","users","{{targetUserId}}"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Nearby",
+      "description": "Location, presence, and nearby user discovery via PostGIS.",
+      "item": [
+        {
+          "name": "Get Nearby Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/nearby?lat=40.7128&lng=-74.0060&radius=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","nearby"],
+              "query": [
+                { "key": "lat",    "value": "40.7128",  "description": "Latitude (-90 to 90)" },
+                { "key": "lng",    "value": "-74.0060", "description": "Longitude (-180 to 180)" },
+                { "key": "radius", "value": "5",        "description": "Search radius in miles (optional)" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update My Location",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lat\": 40.7128,\n  \"lng\": -74.0060\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/nearby/location", "host": ["{{baseUrl}}"], "path": ["api","v1","nearby","location"] }
+          }
+        },
+        {
+          "name": "Update My Presence",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_online\": true,\n  \"is_on_call\": false,\n  \"available_call\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/nearby/presence", "host": ["{{baseUrl}}"], "path": ["api","v1","nearby","presence"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Channels",
+      "description": "Group chat channels.",
+      "item": [
+        {
+          "name": "List Channels",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/channels", "host": ["{{baseUrl}}"], "path": ["api","v1","channels"] }
+          }
+        },
+        {
+          "name": "Create Channel",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('channelId', pm.response.json().data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Chess Lovers\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/channels", "host": ["{{baseUrl}}"], "path": ["api","v1","channels"] }
+          }
+        },
+        {
+          "name": "Get Channel",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/channels/{{channelId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","channels","{{channelId}}"] }
+          }
+        },
+        {
+          "name": "Join Channel",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/v1/channels/{{channelId}}/join", "host": ["{{baseUrl}}"], "path": ["api","v1","channels","{{channelId}}","join"] }
+          }
+        },
+        {
+          "name": "Leave Channel",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/v1/channels/{{channelId}}/leave", "host": ["{{baseUrl}}"], "path": ["api","v1","channels","{{channelId}}","leave"] }
+          }
+        },
+        {
+          "name": "Toggle Favourite Channel",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/v1/channels/{{channelId}}/favorite", "host": ["{{baseUrl}}"], "path": ["api","v1","channels","{{channelId}}","favorite"] }
+          }
+        },
+        {
+          "name": "Get Channel Messages",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/channels/{{channelId}}/messages?limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","channels","{{channelId}}","messages"],
+              "query": [{ "key": "limit", "value": "50", "description": "1–100, optional" }]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Conversations",
+      "description": "Private 1-on-1 conversations.",
+      "item": [
+        {
+          "name": "List Conversations",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/conversations", "host": ["{{baseUrl}}"], "path": ["api","v1","conversations"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Activities",
+      "description": "Browsable activity catalogue.",
+      "item": [
+        {
+          "name": "List Activities",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/activities", "host": ["{{baseUrl}}"], "path": ["api","v1","activities"] }
+          }
+        },
+        {
+          "name": "Get Random Activity",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/activities/random", "host": ["{{baseUrl}}"], "path": ["api","v1","activities","random"] }
+          }
+        },
+        {
+          "name": "Get Activity by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set('activityId', pm.response.json().data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/activities/{{activityId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","activities","{{activityId}}"] }
+          }
+        },
+        {
+          "name": "Join Activity",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/v1/activities/{{activityId}}/join", "host": ["{{baseUrl}}"], "path": ["api","v1","activities","{{activityId}}","join"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Groups",
+      "description": "Community groups with integrated Stream.IO calling.",
+      "item": [
+        {
+          "name": "Create Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('groupId', pm.response.json().data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Chess Masters\",\n  \"description\": \"A group for chess enthusiasts\",\n  \"member_ids\": []\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/groups", "host": ["{{baseUrl}}"], "path": ["api","v1","groups"] }
+          }
+        },
+        {
+          "name": "List My Groups",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/groups", "host": ["{{baseUrl}}"], "path": ["api","v1","groups"] }
+          }
+        },
+        {
+          "name": "List Public Groups",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/groups/public", "host": ["{{baseUrl}}"], "path": ["api","v1","groups","public"] }
+          }
+        },
+        {
+          "name": "Get Group",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/groups/{{groupId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","groups","{{groupId}}"] }
+          }
+        },
+        {
+          "name": "Update Group",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Chess Masters Updated\",\n  \"description\": \"Updated description\",\n  \"is_private\": false\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/groups/{{groupId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","groups","{{groupId}}"] }
+          }
+        },
+        {
+          "name": "Join Group",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/v1/groups/{{groupId}}/join", "host": ["{{baseUrl}}"], "path": ["api","v1","groups","{{groupId}}","join"] }
+          }
+        },
+        {
+          "name": "Leave Group",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/v1/groups/{{groupId}}/leave", "host": ["{{baseUrl}}"], "path": ["api","v1","groups","{{groupId}}","leave"] }
+          }
+        },
+        {
+          "name": "Start Instant Call",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/v1/groups/{{groupId}}/instant-call", "host": ["{{baseUrl}}"], "path": ["api","v1","groups","{{groupId}}","instant-call"] }
+          }
+        },
+        {
+          "name": "Join Active Call",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/api/v1/groups/{{groupId}}/join-call", "host": ["{{baseUrl}}"], "path": ["api","v1","groups","{{groupId}}","join-call"] }
+          }
+        },
+        {
+          "name": "Get Live Meetings in Group",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/groups/{{groupId}}/live-meetings", "host": ["{{baseUrl}}"], "path": ["api","v1","groups","{{groupId}}","live-meetings"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Meetings",
+      "description": "1-on-1 and scheduled meeting management via Stream.IO.",
+      "item": [
+        {
+          "name": "Invite to Meeting",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('meetingId', pm.response.json().data.meeting.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to_user_id\": \"{{targetUserId}}\",\n  \"meeting_type\": \"video\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/meetings/invite", "host": ["{{baseUrl}}"], "path": ["api","v1","meetings","invite"] }
+          }
+        },
+        {
+          "name": "Start Private Call",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to_user_id\": \"{{targetUserId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/meetings/private", "host": ["{{baseUrl}}"], "path": ["api","v1","meetings","private"] }
+          }
+        },
+        {
+          "name": "List Live Meetings",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/meetings/live", "host": ["{{baseUrl}}"], "path": ["api","v1","meetings","live"] }
+          }
+        },
+        {
+          "name": "Get Meeting Link / Token",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/meetings/{{meetingId}}/link", "host": ["{{baseUrl}}"], "path": ["api","v1","meetings","{{meetingId}}","link"] }
+          }
+        },
+        {
+          "name": "Schedule a Meeting",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Team Chess Match\",\n  \"starts_at\": \"2026-03-01T18:00:00Z\",\n  \"meeting_type\": \"video\",\n  \"channel_id\": \"{{channelId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/meetings/schedule", "host": ["{{baseUrl}}"], "path": ["api","v1","meetings","schedule"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Skills",
+      "description": "User skill management (can_do / learning / interested / not_interested).",
+      "item": [
+        {
+          "name": "List My Skills",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/skills", "host": ["{{baseUrl}}"], "path": ["api","v1","skills"] }
+          }
+        },
+        {
+          "name": "Add Skill",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('skillId', pm.response.json().data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Chess\",\n  \"status\": \"can_do\",\n  \"description\": \"Love playing chess competitively\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/skills", "host": ["{{baseUrl}}"], "path": ["api","v1","skills"] }
+          }
+        },
+        {
+          "name": "Update Skill",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Chess\",\n  \"status\": \"learning\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/skills/{{skillId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","skills","{{skillId}}"] }
+          }
+        },
+        {
+          "name": "Delete Skill",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/v1/skills/{{skillId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","skills","{{skillId}}"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Goals",
+      "description": "Personal goal tracking.",
+      "item": [
+        {
+          "name": "List My Goals",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/goals", "host": ["{{baseUrl}}"], "path": ["api","v1","goals"] }
+          }
+        },
+        {
+          "name": "Create Goal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('goalId', pm.response.json().data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Read 30 minutes every day\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/goals", "host": ["{{baseUrl}}"], "path": ["api","v1","goals"] }
+          }
+        },
+        {
+          "name": "Update Goal",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_complete\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/goals/{{goalId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","goals","{{goalId}}"] }
+          }
+        },
+        {
+          "name": "Delete Goal",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/v1/goals/{{goalId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","goals","{{goalId}}"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Favorites",
+      "description": "Favourite callers and groups.",
+      "item": [
+        {
+          "name": "Toggle Favourite Caller",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{targetUserId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/favorites/callers", "host": ["{{baseUrl}}"], "path": ["api","v1","favorites","callers"] }
+          }
+        },
+        {
+          "name": "List Favourite Callers",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/favorites/callers", "host": ["{{baseUrl}}"], "path": ["api","v1","favorites","callers"] }
+          }
+        },
+        {
+          "name": "Toggle Favourite Group",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"channel_id\": \"{{groupId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/favorites/groups", "host": ["{{baseUrl}}"], "path": ["api","v1","favorites","groups"] }
+          }
+        },
+        {
+          "name": "List Favourite Groups",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/favorites/groups", "host": ["{{baseUrl}}"], "path": ["api","v1","favorites","groups"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Categories",
+      "description": "Hierarchical activity/interest categories.",
+      "item": [
+        {
+          "name": "List Top-Level Categories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json().data;",
+                  "  if (data && data.length > 0) {",
+                  "    pm.collectionVariables.set('categoryId', data[0].id);",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/categories", "host": ["{{baseUrl}}"], "path": ["api","v1","categories"] }
+          }
+        },
+        {
+          "name": "Search Categories",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories/search?q=chess",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","categories","search"],
+              "query": [{ "key": "q", "value": "chess" }]
+            }
+          }
+        },
+        {
+          "name": "Get Sub-Categories",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/categories/{{categoryId}}/children", "host": ["{{baseUrl}}"], "path": ["api","v1","categories","{{categoryId}}","children"] }
+          }
+        },
+        {
+          "name": "Get Users by Category",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/categories/{{categoryId}}/users", "host": ["{{baseUrl}}"], "path": ["api","v1","categories","{{categoryId}}","users"] }
+          }
+        },
+        {
+          "name": "Toggle Liked Category",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_id\": \"{{categoryId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/categories/liked", "host": ["{{baseUrl}}"], "path": ["api","v1","categories","liked"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Search",
+      "description": "Global full-text search across all entity types.",
+      "item": [
+        {
+          "name": "Search — All Types",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search?q=chess&type=all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","search"],
+              "query": [
+                { "key": "q",    "value": "chess", "description": "Search query (1–200 chars)" },
+                { "key": "type", "value": "all",   "description": "users | skills | posts | groups | meetings | categories | activities | all" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search — Users Only",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search?q=chess&type=users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","search"],
+              "query": [
+                { "key": "q",    "value": "chess" },
+                { "key": "type", "value": "users" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search — Groups Only",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search?q=chess&type=groups",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","search"],
+              "query": [
+                { "key": "q",    "value": "chess" },
+                { "key": "type", "value": "groups" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search — Skills Only",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search?q=chess&type=skills",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","search"],
+              "query": [
+                { "key": "q",    "value": "chess" },
+                { "key": "type", "value": "skills" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Materials",
+      "description": "Learning materials catalogue (Redis-cached).",
+      "item": [
+        {
+          "name": "List Materials",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/materials",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","materials"],
+              "query": [{ "key": "category", "value": "", "description": "Optional category filter", "disabled": true }]
+            }
+          }
+        },
+        {
+          "name": "Get Random Material",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/materials/random", "host": ["{{baseUrl}}"], "path": ["api","v1","materials","random"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Verification",
+      "description": "User identity verification. Photos are relayed ephemerally over WebSocket — never stored.",
+      "item": [
+        {
+          "name": "Submit Verification Report",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_id\": \"{{targetUserId}}\",\n  \"approved\": true,\n  \"age_range\": \"25-34\",\n  \"gender\": \"male\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/verification", "host": ["{{baseUrl}}"], "path": ["api","v1","verification"] }
+          }
+        },
+        {
+          "name": "Initiate Photo Verification",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/v1/verification/photos", "host": ["{{baseUrl}}"], "path": ["api","v1","verification","photos"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Reports",
+      "description": "User report/flag system.",
+      "item": [
+        {
+          "name": "Report a User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reported_id\": \"{{targetUserId}}\",\n  \"reason\": \"Inappropriate behaviour in a group call\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/reports", "host": ["{{baseUrl}}"], "path": ["api","v1","reports"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Location",
+      "description": "Server-side LocationIQ autocomplete proxy (API key never exposed to client).",
+      "item": [
+        {
+          "name": "Address Suggestions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/location/suggestions?q=New York",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","location","suggestions"],
+              "query": [{ "key": "q", "value": "New York", "description": "Address query (2–200 chars)" }]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Notifications",
+      "description": "In-app notification inbox.",
+      "item": [
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/notifications", "host": ["{{baseUrl}}"], "path": ["api","v1","notifications"] }
+          }
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/api/v1/notifications/read-all", "host": ["{{baseUrl}}"], "path": ["api","v1","notifications","read-all"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Posts",
+      "description": "Community posts / feed.",
+      "item": [
+        {
+          "name": "List Posts",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/posts", "host": ["{{baseUrl}}"], "path": ["api","v1","posts"] }
+          }
+        },
+        {
+          "name": "Create Post",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Looking for chess partners!\",\n  \"content\": \"Anyone up for a casual game this weekend? I am Elo ~1200.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/posts", "host": ["{{baseUrl}}"], "path": ["api","v1","posts"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Admin",
+      "description": "Admin-only endpoints. Requires a user with role = 'admin'.",
+      "item": [
+        {
+          "name": "Get Platform Stats",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/stats", "host": ["{{baseUrl}}"], "path": ["api","v1","admin","stats"] }
+          }
+        },
+        {
+          "name": "List All Users",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/users", "host": ["{{baseUrl}}"], "path": ["api","v1","admin","users"] }
+          }
+        },
+        {
+          "name": "Ban / Unban User",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/users/{{targetUserId}}/ban", "host": ["{{baseUrl}}"], "path": ["api","v1","admin","users","{{targetUserId}}","ban"] }
+          }
+        },
+        {
+          "name": "List Activities (Admin)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/activities", "host": ["{{baseUrl}}"], "path": ["api","v1","admin","activities"] }
+          }
+        },
+        {
+          "name": "Create Activity",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Speed Chess\",\n  \"description\": \"Blitz chess 5+0\",\n  \"category_id\": \"{{categoryId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/activities", "host": ["{{baseUrl}}"], "path": ["api","v1","admin","activities"] }
+          }
+        },
+        {
+          "name": "Update Activity",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Speed Chess Updated\",\n  \"description\": \"Blitz 3+2\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/activities/{{activityId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","admin","activities","{{activityId}}"] }
+          }
+        },
+        {
+          "name": "Delete Activity",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/activities/{{activityId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","admin","activities","{{activityId}}"] }
+          }
+        },
+        {
+          "name": "Send Push Notification",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{targetUserId}}\",\n  \"title\": \"New Activity!\",\n  \"body\": \"A new chess activity is available\",\n  \"data\": { \"screen\": \"Activities\" }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/notifications/send", "host": ["{{baseUrl}}"], "path": ["api","v1","admin","notifications","send"] }
+          }
+        },
+        {
+          "name": "Get App Settings",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/settings", "host": ["{{baseUrl}}"], "path": ["api","v1","admin","settings"] }
+          }
+        },
+        {
+          "name": "Update App Settings",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"maintenance_mode\": false,\n  \"max_nearby_radius\": 50\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/settings", "host": ["{{baseUrl}}"], "path": ["api","v1","admin","settings"] }
+          }
+        },
+        {
+          "name": "List Materials (Admin)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/materials", "host": ["{{baseUrl}}"], "path": ["api","v1","admin","materials"] }
+          }
+        },
+        {
+          "name": "Create Material",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('materialId', pm.response.json().data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Chess Fundamentals\",\n  \"url\": \"https://example.com/chess-fundamentals\",\n  \"category\": \"chess\",\n  \"description\": \"A beginner's guide to chess strategy\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/materials", "host": ["{{baseUrl}}"], "path": ["api","v1","admin","materials"] }
+          }
+        },
+        {
+          "name": "Update Material",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Chess Fundamentals — Updated\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/materials/{{materialId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","admin","materials","{{materialId}}"] }
+          }
+        },
+        {
+          "name": "Delete Material",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/materials/{{materialId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","admin","materials","{{materialId}}"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Health",
+      "description": "Server health check — no auth required.",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+          }
+        }
+      ]
+    }
+
+  ]
+}
