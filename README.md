@@ -162,7 +162,13 @@ funpals/
 │   │       ├── unit/            # Jest unit tests (mocked DB)
 │   │       └── integration/     # Supertest integration tests (live DB)
 │   ├── admin/                   # React Web Admin Panel
-│   └── mobile/                  # React Native App
+│   └── mobile/                  # React Native App (iOS + Android)
+│       ├── android/             # Gradle project — package com.funpals
+│       ├── ios/                 # Xcode project — Funpals.xcodeproj
+│       ├── src/                 # TypeScript source (screens, navigation, store)
+│       ├── metro.config.js      # Metro bundler — monorepo watchFolders config
+│       ├── app.json             # App name for AppRegistry
+│       └── index.js             # RN entry point
 ├── packages/
 │   ├── shared-types/            # TypeScript types
 │   └── shared-utils/            # Utility functions
@@ -774,6 +780,109 @@ Layout: 3-column stat card grid on top, charts below, all using shadcn `Card`.
 | 12 | Notifications | Custom send form + history |
 | 13 | Settings | Form-based settings editor |
 | 14 | Polish | Types, dark mode, build verification |
+
+---
+
+## Mobile App
+
+The mobile app lives in `apps/mobile/` and is built with **React Native 0.74 + TypeScript**.
+
+### Native Setup Status
+
+| Item | Status | Details |
+|---|---|---|
+| `android/` | ✅ Done | Gradle project, `applicationId "com.funpals"`, `MainActivity.kt`, `MainApplication.kt` |
+| `ios/` | ✅ Done | `Funpals.xcodeproj`, `AppDelegate`, `Info.plist`, `LaunchScreen.storyboard`, `Podfile` |
+| `metro.config.js` | ✅ Done | Monorepo `watchFolders` + `nodeModulesPaths` configured |
+| `app.json` | ✅ Done | `{ "name": "Funpals", "displayName": "Funpals" }` |
+| `index.js` | ✅ Done | Registers `App` component via `AppRegistry` |
+| CocoaPods (`pod install`) | ⚠️ macOS only | Must be run on a Mac before iOS build |
+| `google-services.json` | ❌ Required | Firebase config for FCM push notifications + AdMob (Android) |
+| `GoogleService-Info.plist` | ❌ Required | Firebase config for APNs push notifications (iOS) |
+| Google Maps API key | ❌ Required | Add to `AndroidManifest.xml` and `Info.plist` for `react-native-maps` |
+| AdMob App ID | ❌ Required | Add to `AndroidManifest.xml` and `Info.plist` for `react-native-google-mobile-ads` |
+
+---
+
+### Running Locally
+
+```bash
+# Install dependencies (from repo root)
+npm install
+
+# Start Metro bundler
+cd apps/mobile && npx react-native start
+
+# Android (requires Android Studio + emulator or device)
+cd apps/mobile && npx react-native run-android
+
+# iOS (macOS only — requires Xcode 15+ and CocoaPods)
+cd apps/mobile/ios && pod install
+cd apps/mobile && npx react-native run-ios
+```
+
+---
+
+### Metro Monorepo Config
+
+`metro.config.js` is configured so Metro can resolve:
+- Root `node_modules/` (npm workspace hoisted dependencies)
+- `packages/shared-types/` and `packages/shared-utils/` (internal monorepo packages)
+
+```js
+config.watchFolders = [monorepoRoot];
+config.resolver.nodeModulesPaths = [
+  path.resolve(__dirname, 'node_modules'),
+  path.resolve(monorepoRoot, 'node_modules'),
+];
+```
+
+---
+
+### Before First Production Build
+
+**Android:**
+1. Obtain `google-services.json` from [Firebase Console](https://console.firebase.google.com) and place it in `apps/mobile/android/app/`
+2. Add your Google Maps API key to `apps/mobile/android/app/src/main/AndroidManifest.xml`:
+   ```xml
+   <meta-data android:name="com.google.android.geo.API_KEY" android:value="YOUR_KEY"/>
+   ```
+3. Add your AdMob App ID to `AndroidManifest.xml`:
+   ```xml
+   <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-XXXXXXXX~XXXXXXXX"/>
+   ```
+4. Generate a release keystore and configure signing in `android/app/build.gradle`
+
+**iOS (macOS required):**
+1. Obtain `GoogleService-Info.plist` from Firebase Console and add it to `apps/mobile/ios/Funpals/`
+2. Add Google Maps API key to `Info.plist`:
+   ```xml
+   <key>GMSApiKey</key><string>YOUR_KEY</string>
+   ```
+3. Configure APNs capability in Xcode: **Signing & Capabilities → + Capability → Push Notifications**
+4. Run `pod install` inside `apps/mobile/ios/`
+5. Set the bundle identifier to `com.funpals` in Xcode → Signing & Capabilities
+
+---
+
+### Mobile Tech Stack
+
+| Concern | Library |
+|---|---|
+| Framework | React Native 0.74 + TypeScript |
+| Navigation | React Navigation v6 (Stack + Bottom Tabs) |
+| State | Redux Toolkit + React Redux |
+| Forms | React Hook Form + Zod |
+| Maps | react-native-maps |
+| Real-time | Socket.IO client |
+| Video/Audio | Stream.IO (token from API) |
+| Images | react-native-fast-image |
+| Push | react-native-push-notification (APNs + FCM) |
+| Ads | react-native-google-mobile-ads |
+| Calendar | react-native-calendars |
+| Gestures | react-native-gesture-handler + react-native-reanimated |
+| Storage | @react-native-async-storage/async-storage |
+| Sharing | react-native-share |
 
 ---
 
