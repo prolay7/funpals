@@ -20,6 +20,6 @@ export function errorHandler(
     res.status(err.statusCode).json({ error: err.message });
     return;
   }
-  logger.error({ err, url: req.url, method: req.method }, 'Unhandled error');
+  logger.error('Unhandled error', { err, url: req.url, method: req.method });
   res.status(500).json({ error: 'Internal server error' });
 }

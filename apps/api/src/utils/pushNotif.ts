@@ -49,5 +49,5 @@ export async function sendApnsPush(deviceToken: string, payload: PushPayload): P
   if (!env.APNS_KEY_ID || !env.APNS_KEY_PATH) return;
   // Full APNs HTTP/2 implementation would use the 'http2' module
   // with JWT signed by the .p8 key. Placeholder for integration.
-  logger.debug({ deviceToken, payload }, 'APNs push (placeholder – implement with http2 module)');
+  logger.debug('APNs push (placeholder – implement with http2 module)', { deviceToken, payload });
 }

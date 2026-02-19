@@ -32,6 +32,6 @@ export function startNotificationBatchJob(): void {
         });
       }
       logger.info(`Batch notifications sent to ${rows.length} users`);
-    } catch (err) { logger.error({ err }, 'Notification batch job failed'); }
+    } catch (err) { logger.error('Notification batch job failed', { err }); }
   });
 }

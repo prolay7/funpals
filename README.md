@@ -121,6 +121,53 @@ npm run seed           # Seed database with initial data
 
 ---
 
+## Database Seeding
+
+The seeder (`apps/api/seeds/run.ts`) populates the database with realistic sample data.
+It is **idempotent** — safe to run multiple times (uses `ON CONFLICT DO NOTHING`).
+
+```bash
+cd apps/api && npm run seed
+```
+
+### Seeded Accounts
+
+All accounts use the password **`Funpals@123`**.
+
+| Email | Role | Display Name |
+|---|---|---|
+| `admin@funpals.com` | `admin` | Admin |
+| `alice@funpals.com` | `user` | Alice Johnson |
+| `bob@funpals.com` | `user` | Bob Martinez |
+| `carol@funpals.com` | `user` | Carol Chen |
+| `dave@funpals.com` | `user` | Dave Thompson |
+
+### Seeded Data Summary
+
+| Table | Records | Notes |
+|---|---|---|
+| `users` | 5 | 1 admin + 4 regular users |
+| `user_profiles` | 5 | Bio, interests, can_do, age range, zip |
+| `online_presence` | 5 | One row per user (offline by default) |
+| `activity_categories` | 6 | games, parks, trails, libraries, books, other |
+| `activities` | 6 | Sample activities linked to categories |
+| `categories` | 8 | Fitness, Arts, Tech, Books, Outdoors, Games, Wellness, Community |
+| `channels` | 4 | General, Activities, Announcements (default) + Book Club |
+| `channel_members` | 17 | All users in default channels; alice + carol in Book Club |
+| `messages` | 11 | Sample messages across all channels |
+| `events` | 4 | Upcoming events: hike, board game night, book club, park clean-up |
+| `event_rsvps` | 7 | RSVPs spread across events |
+| `open_posts` | 5 | Posts by alice, bob, carol, dave |
+| `open_questions` | 5 | Questions by alice, bob, carol, dave |
+| `shares` | 4 | Internal and global shares |
+| `materials` | 7 | Learning materials across categories |
+| `user_skills` | 12 | Skills with `can_do` / `learning` / `interested` status |
+| `user_goals` | 8 | Personal goals for each user |
+| `notifications` | 7 | Welcome + activity notifications |
+| `user_activities` | 8 | Users linked to relevant activities |
+
+---
+
 ## Project Structure
 
 ```

@@ -64,7 +64,7 @@ export class WsServer {
     ws.on('pong', () => { ws.isAlive = true; });
     ws.on('message', (raw) => this.handleMessage(ws, raw.toString()));
     ws.on('close', () => this.handleDisconnect(ws));
-    ws.on('error', (err) => logger.error({ err }, 'WS socket error'));
+    ws.on('error', (err) => logger.error('WS socket error', { err }));
   }
 
   private async handleMessage(ws: AuthedSocket, raw: string): Promise<void> {
@@ -107,7 +107,7 @@ export class WsServer {
         type: 'text',
       });
       redisPublisher.publish('ws:chat', JSON.stringify({ channelId: msg.channelId, message: saved }));
-    } catch (err) { logger.error({ err }, 'Failed to save WS message'); }
+    } catch (err) { logger.error('Failed to save WS message', { err }); }
   }
 
   private handleTyping(ws: AuthedSocket, msg: Record<string, unknown>): void {
@@ -142,7 +142,7 @@ export class WsServer {
       });
       // Return call token to inviter
       ws.send(JSON.stringify({ type: 'meet_link', meetingId: result.meeting.id, callToken: result.callToken, callId: result.callId }));
-    } catch (err) { logger.error({ err }, 'Failed WS meet_invite'); }
+    } catch (err) { logger.error('Failed WS meet_invite', { err }); }
   }
 
   private async handleMeetAccept(ws: AuthedSocket, msg: Record<string, unknown>): Promise<void> {
@@ -155,7 +155,7 @@ export class WsServer {
         this.sendToUser(rows[0].created_by, { type: 'meet_accepted', meetingId: msg.meetingId, callToken: (result as any).callToken });
       }
       ws.send(JSON.stringify({ type: 'meet_accepted', meetingId: msg.meetingId, ...result }));
-    } catch (err) { logger.error({ err }, 'Failed WS meet_accept'); }
+    } catch (err) { logger.error('Failed WS meet_accept', { err }); }
   }
 
   private handleMeetDecline(ws: AuthedSocket, msg: Record<string, unknown>): void {
@@ -195,7 +195,7 @@ export class WsServer {
         fromUserId: ws.userId,
         approved: msg.approved,
       });
-    } catch (err) { logger.error({ err }, 'Failed WS verification_report'); }
+    } catch (err) { logger.error('Failed WS verification_report', { err }); }
   }
 
   /** Redis subscriber: receives chat/typing/presence/notification events from any API instance */
