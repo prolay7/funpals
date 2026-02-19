@@ -535,12 +535,255 @@ cd apps/api && npm test -- --testPathPattern=tests/integration
 
 ---
 
+## Admin Panel
+
+The admin panel lives in `apps/admin/` and is built with **React 18 + Vite + TypeScript + TailwindCSS**.
+It is being migrated to the [shadcn-admin-kit](https://github.com/marmelab/shadcn-admin-kit) template,
+which wraps **react-admin (ra-core)** with **shadcn/ui** components.
+
+### Current State (`apps/admin/`)
+
+| File | Status | Description |
+|---|---|---|
+| `src/api/client.ts` | Done | Axios instance with auto Bearer token + 401 redirect |
+| `src/App.tsx` | Done | React Router v6 protected routes |
+| `src/components/Layout.tsx` | Done | Sidebar + topbar with Funpals brand colours |
+| `src/pages/Login.tsx` | Done | Email/password login with admin role check |
+| `src/pages/Dashboard.tsx` | Done | Stats cards from `/admin/stats` |
+| `src/pages/Users.tsx` | Done | User table with search and ban/unban |
+| `src/pages/Activities.tsx` | Partial | Basic grid, no create/edit/delete |
+| `src/pages/Posts.tsx` | Stub | Heading only — not implemented |
+| `src/pages/Notifications.tsx` | Done | Send push notification form |
+| `src/pages/Settings.tsx` | Partial | Displays raw JSON, no edit UI |
+
+### Tech Stack — Admin Panel
+
+| Concern | Library |
+|---|---|
+| Framework | React 18 + Vite + TypeScript |
+| Admin scaffolding | react-admin (ra-core) via shadcn-admin-kit |
+| UI components | shadcn/ui + Radix UI |
+| Styling | TailwindCSS 3 |
+| Icons | Lucide |
+| Routing | React Router DOM v6 |
+| Data fetching | TanStack Query v5 |
+| Forms | React Hook Form + Zod |
+| Charts | Recharts |
+| HTTP client | Axios |
+
+---
+
+### Admin Panel — Build Plan
+
+The following 14 steps take the admin panel from its current partial state to a
+fully featured, production-ready dashboard. Each step is independent and can be
+approved and executed individually.
+
+---
+
+#### Phase 1 — Foundation
+
+**Step 1 — Install dependencies and configure shadcn/ui**
+
+- Add `react-admin`, `ra-core`, `shadcn-admin-kit` to `apps/admin/package.json`
+- Install Radix UI primitives (`dialog`, `dropdown-menu`, `select`, `table`, etc.)
+- Add `lucide-react`
+- Run `shadcn init` — generates `components.json`, `lib/utils.ts`, base CSS variables
+- Update `tailwind.config.ts` with shadcn/ui preset
+- Update `index.css` with CSS variable palette for light/dark mode
+- Keep existing Vite dev proxy (`/api → http://localhost:3000`)
+
+*Output: blank app that boots with shadcn/ui theme applied.*
+
+---
+
+#### Phase 2 — Auth Provider
+
+**Step 2 — Write the Funpals Auth Provider**
+
+react-admin requires an `authProvider` object with these methods:
+
+| Method | API Call | Behaviour |
+|---|---|---|
+| `login({ email, password })` | `POST /api/v1/auth/login` | Saves tokens to localStorage; rejects if `role !== 'admin'` |
+| `logout()` | `POST /api/v1/auth/logout` | Clears localStorage |
+| `checkAuth()` | Local | Reads token; rejects if missing → redirects to login |
+| `checkError(error)` | Local | Rejects on HTTP 401/403 → forces logout |
+| `getPermissions()` | Local | Returns `'admin'` from decoded JWT |
+| `getIdentity()` | `GET /api/v1/users/me` | Returns `{ id, fullName, avatar }` for header display |
+
+*Output: login works, all routes protected, user identity shown in topbar.*
+
+---
+
+#### Phase 3 — Data Provider
+
+**Step 3 — Write the Funpals Data Provider**
+
+Bridges react-admin CRUD operations to the Funpals REST API:
+
+| react-admin method | Funpals endpoint | Notes |
+|---|---|---|
+| `getList('users')` | `GET /api/v1/admin/users` | Maps pagination params |
+| `getOne('users', id)` | `GET /api/v1/users/:id` | |
+| `update('users', id)` | `PATCH /api/v1/admin/users/:id/ban` | Ban toggle |
+| `getList('activities')` | `GET /api/v1/admin/activities` | |
+| `create('activities')` | `POST /api/v1/admin/activities` | |
+| `update('activities', id)` | `PATCH /api/v1/admin/activities/:id` | |
+| `delete('activities', id)` | `DELETE /api/v1/admin/activities/:id` | |
+| `getList('materials')` | `GET /api/v1/admin/materials` | |
+| `create('materials')` | `POST /api/v1/admin/materials` | |
+| `update('materials', id)` | `PATCH /api/v1/admin/materials/:id` | |
+| `delete('materials', id)` | `DELETE /api/v1/admin/materials/:id` | |
+| `getList('groups')` | `GET /api/v1/groups/public` | Read-only |
+| `getList('reports')` | `GET /api/v1/admin/users` + reports | Read-only |
+
+*Output: all CRUD pages connect to the real API with no per-page fetch logic needed.*
+
+---
+
+#### Phase 4 — Layout & Shell
+
+**Step 4 — App shell (App.tsx + Layout)**
+
+- Replace current `App.tsx` with react-admin `<Admin dataProvider authProvider layout>` root
+- Custom `FunpalsLayout` wrapping shadcn-admin-kit sidebar:
+  - Funpals logo at the top
+  - Navigation links to all resources
+  - Brand colours: dark navy `#1A3C5E` + teal `#0E7F6B` via CSS variables
+  - Topbar with user identity and logout
+- Custom `<Login>` page with shadcn `Card`, `Input`, `Button`
+
+*Output: full shell loads — sidebar, topbar, login — styled in Funpals branding.*
+
+---
+
+#### Phase 5 — Dashboard
+
+**Step 5 — Dashboard page**
+
+Stats cards from `GET /api/v1/admin/stats`:
+
+- Total Users
+- Total Channels
+- Messages Today
+- Active Activities
+- Live Meetings *(new)*
+- Reports Pending *(new)*
+
+Charts (Recharts):
+- User registrations over time — line chart
+- Activity categories breakdown — pie chart
+
+Layout: 3-column stat card grid on top, charts below, all using shadcn `Card`.
+
+*Output: rich dashboard with live stats and charts.*
+
+---
+
+#### Phase 6 — Resources
+
+**Step 6 — Users Resource** (`/users`)
+
+- List: DataTable with Avatar, Username, Email, Role badge, Status badge, Joined date, Actions
+- Server-side search by email / username
+- Row actions: View profile, Ban / Unban (with confirmation dialog)
+- Bulk action: Ban selected
+- Show page: profile card, skills list, goals list, recent activity
+- No create page (users self-register)
+
+**Step 7 — Activities Resource** (`/activities`)
+
+- List: DataTable — Name, Category, Created date, Actions
+- Filter by category
+- Create page: Name, Description, Category (select from `/categories`)
+- Edit page: same form pre-populated
+- Delete: confirmation dialog
+
+**Step 8 — Materials Resource** (`/materials`) *(was missing — now complete)*
+
+- List: DataTable — Title, URL (clickable), Category, Created date, Actions
+- Create page: Title, URL, Category, Description
+- Edit and Delete: same pattern as Activities
+
+**Step 9 — Reports Resource** (`/reports`) *(new)*
+
+- List: DataTable — Reporter, Reported user, Reason, Date
+- Read-only — no create/edit
+- Row action: View both user profiles
+
+**Step 10 — Groups & Meetings (read-only overview)**
+
+- Groups list: DataTable — Name, Member count, Private/Public badge, Created date
+- Meetings list: DataTable — Call ID, Type, Created by, Live badge, Participants count
+- Both are read-only (user-created content, not admin-managed)
+
+**Step 11 — Posts Moderation** (`/posts`) *(was stub — now complete)*
+
+- List: DataTable — Title, Author, Created date, Actions
+- Row action: Delete post (moderation)
+
+---
+
+#### Phase 7 — Custom Action Pages
+
+**Step 12 — Notifications Page** (`/notifications`)
+
+- Recipient: All users or Specific user (UUID input with autocomplete)
+- Fields: Title, Body
+- Preview card showing the notification appearance
+- Submit → `POST /api/v1/admin/notifications/send`
+- Send history table (last 20 sent)
+
+**Step 13 — Settings Page** (`/settings`)
+
+- Fetch from `GET /api/v1/admin/settings`
+- Render each setting as a typed form field (toggle, text, number — inferred from value type)
+- Save → `PATCH /api/v1/admin/settings`
+- React Hook Form + Zod validation
+
+---
+
+#### Phase 8 — Polish & Build
+
+**Step 14 — Polish, types, and build verification**
+
+- TypeScript types for all API response shapes in `src/types/`
+- Dark mode toggle (shadcn/ui native support)
+- Clean `tsc && vite build` with zero type errors
+- Verify Vite dev proxy and production Nginx config are aligned
+- Update `docs/UPDATES.md` with admin panel completion entry
+
+---
+
+### Step Summary
+
+| Step | Phase | Deliverable |
+|---|---|---|
+| 1 | Foundation | shadcn/ui + react-admin installed, Tailwind configured |
+| 2 | Auth | `authProvider` — login, logout, identity, permissions |
+| 3 | Data | `dataProvider` — all CRUD mapped to Funpals API |
+| 4 | Shell | Layout, sidebar, topbar, Funpals branding |
+| 5 | Dashboard | Stats cards + Recharts charts |
+| 6 | Users | Full table + ban/unban + show page |
+| 7 | Activities | Full CRUD table + create/edit forms |
+| 8 | Materials | Full CRUD table + create/edit forms |
+| 9 | Reports | Read-only list with profile links |
+| 10 | Groups & Meetings | Read-only overview tables |
+| 11 | Posts | Moderation list + delete action |
+| 12 | Notifications | Custom send form + history |
+| 13 | Settings | Form-based settings editor |
+| 14 | Polish | Types, dark mode, build verification |
+
+---
+
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
 - [API Reference](docs/API.md)
 - [Database Schema](docs/DATABASE.md)
 - [Deployment Guide](docs/DEPLOYMENT.md)
+- [Project Updates](docs/UPDATES.md)
 
 ---
 
