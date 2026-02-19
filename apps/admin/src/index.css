@@ -1,4 +1,72 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-body { @apply bg-gray-50 text-gray-900; }
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    /* Funpals primary: teal #0E7F6B */
+    --primary: 169 79% 28%;
+    --primary-foreground: 0 0% 100%;
+    /* Funpals secondary: dark navy #1A3C5E */
+    --secondary: 210 56% 23%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 169 40% 90%;
+    --accent-foreground: 169 79% 20%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 169 79% 28%;
+    --radius: 0.5rem;
+    /* Sidebar uses Funpals navy */
+    --sidebar: 210 56% 23%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-border: 210 56% 18%;
+    --sidebar-accent: 169 79% 28%;
+    --sidebar-accent-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 222 47% 8%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 169 79% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 56% 30%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 217 33% 18%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 169 40% 20%;
+    --accent-foreground: 169 60% 80%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 169 79% 40%;
+    --sidebar: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 15%;
+    --sidebar-accent: 169 79% 28%;
+    --sidebar-accent-foreground: 0 0% 100%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
+}
+
+/* react-admin resets — prevent its default CSS from overriding shadcn */
+.RaLayout-root { background: transparent !important; }
+.RaLayout-content { background: transparent !important; }
