@@ -853,20 +853,40 @@ The mobile app lives in `apps/mobile/` and is built with **React Native 0.74 + T
 
 ### Running Locally
 
-```bash
-# Install dependencies (from repo root)
-npm install
+Two equivalent ways to run the app — use whichever suits your workflow:
 
-# Start Metro bundler
+**Option A — convenience scripts from the repo root (recommended)**
+
+```bash
+# Install mobile dependencies (first time only)
+npm run mobile:install
+
+# Terminal 1 — start Metro bundler
+npm run mobile:start
+
+# Terminal 2 — build and launch
+npm run mobile:android   # Android emulator / device
+npm run mobile:ios       # iOS Simulator (macOS only)
+```
+
+**Option B — cd into apps/mobile**
+
+```bash
+# Install dependencies (first time only)
+cd apps/mobile && npm install --legacy-peer-deps
+
+# Terminal 1 — start Metro bundler
 cd apps/mobile && npx react-native start
 
-# Android (requires Android Studio + emulator or device)
+# Terminal 2 — build and launch
 cd apps/mobile && npx react-native run-android
 
 # iOS (macOS only — requires Xcode 15+ and CocoaPods)
 cd apps/mobile/ios && pod install
 cd apps/mobile && npx react-native run-ios
 ```
+
+> **Important:** Never run `npx react-native` from the repo root directly — `apps/mobile` is not part of the npm workspace, so React Native commands must be run either via the `npm run mobile:*` scripts above or from inside `apps/mobile/`.
 
 ---
 
@@ -990,6 +1010,83 @@ Several dependencies used by this app have **no web support** and would need to 
 | `@react-navigation/stack` | ⚠️ Partial |
 
 Use **Option 1** (Android Emulator) or **Option 4** (Appetize.io) for browser-accessible testing instead.
+
+---
+
+### Troubleshooting
+
+#### ⚠️ `react-native depends on @react-native-community/cli` warning
+
+```
+⚠️ react-native depends on @react-native-community/cli for cli commands.
+To fix update your package.json to include:
+  "devDependencies": { "@react-native-community/cli": "latest" }
+```
+
+**Cause:** You ran `npx react-native start` (or `run-android` / `run-ios`) directly from the repo root. The root `package.json` does not declare `apps/mobile` as a workspace, so React Native's working-directory check fails.
+
+**Fix — use the convenience scripts instead:**
+```bash
+npm run mobile:start    # from repo root — always works
+npm run mobile:android
+npm run mobile:ios
+```
+
+Or `cd apps/mobile` first and then run any `npx react-native` command from there.
+
+`@react-native-community/cli 13.6.9` is now declared in both the root and `apps/mobile` `package.json` so both approaches work without warnings.
+
+---
+
+#### Metro bundler fails to start / `ENOENT` on `metro.config.js`
+
+Make sure you start Metro from `apps/mobile/`, not the repo root:
+```bash
+cd apps/mobile
+npx react-native start
+# or from root:
+npm run mobile:start
+```
+
+---
+
+#### Android build fails — `SDK location not found`
+
+Android Studio must be installed and `ANDROID_HOME` must be set.
+
+```bash
+# Windows — add to System Environment Variables:
+ANDROID_HOME = C:\Users\<you>\AppData\Local\Android\Sdk
+
+# Or create apps/mobile/android/local.properties:
+sdk.dir=C\:\\Users\\<you>\\AppData\\Local\\Android\\Sdk
+```
+
+---
+
+#### Android build fails — `Google Maps API key not set`
+
+`react-native-maps` requires a Google Maps API key on Android.
+Add it to `apps/mobile/android/app/src/main/AndroidManifest.xml`:
+```xml
+<meta-data
+  android:name="com.google.android.geo.API_KEY"
+  android:value="YOUR_GOOGLE_MAPS_KEY" />
+```
+
+Get a key at [console.cloud.google.com](https://console.cloud.google.com) → **APIs & Services → Credentials → Create API Key** → restrict to **Maps SDK for Android**.
+
+---
+
+#### `npm install` peer dependency errors in `apps/mobile`
+
+Several React Native libraries declare strict peer deps. Always install with the legacy resolver:
+```bash
+cd apps/mobile
+npm install --legacy-peer-deps
+# or from root:
+npm run mobile:install
+```
 
 ---
 
