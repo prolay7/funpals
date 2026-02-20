@@ -5,15 +5,22 @@
   "description": "Funpals – React Native social app (iOS/Android), Node.js API, React Admin Panel",
   "workspaces": ["apps/api", "apps/admin", "packages/shared-types", "packages/shared-utils"],
   "scripts": {
-    "dev:api":   "npm run dev --workspace=apps/api",
-    "dev:admin": "npm run dev --workspace=apps/admin",
-    "test":      "npm run test --workspaces --if-present",
-    "test:api":  "npm run test --workspace=apps/api",
-    "lint":      "npm run lint --workspaces --if-present",
-    "build":     "npm run build --workspaces --if-present",
-    "ci":        "npm run lint && npm run build && npm run test"
+    "dev:api":        "npm run dev --workspace=apps/api",
+    "dev:admin":      "npm run dev --workspace=apps/admin",
+    "test":           "npm run test --workspaces --if-present",
+    "test:api":       "npm run test --workspace=apps/api",
+    "lint":           "npm run lint --workspaces --if-present",
+    "build":          "npm run build --workspaces --if-present",
+    "ci":             "npm run lint && npm run build && npm run test",
+    "mobile:start":   "npm --prefix apps/mobile start",
+    "mobile:android": "npm --prefix apps/mobile run android",
+    "mobile:ios":     "npm --prefix apps/mobile run ios",
+    "mobile:install": "npm --prefix apps/mobile install --legacy-peer-deps"
   },
-  "devDependencies": { "prettier": "^3.3.3" },
+  "devDependencies": {
+    "@react-native-community/cli": "13.6.9",
+    "prettier": "^3.3.3"
+  },
   "prettier": { "singleQuote": true, "trailingComma": "all", "semi": true, "printWidth": 100 },
   "engines": { "node": ">=20.0.0", "npm": ">=10.0.0" }
 }
