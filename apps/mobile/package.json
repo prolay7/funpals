@@ -39,6 +39,7 @@
     "@react-native-community/cli": "13.6.9",
     "@react-native-community/cli-platform-android": "13.6.9",
     "@react-native-community/cli-platform-ios": "13.6.9",
+    "@react-native/metro-config": "^0.74.83",
     "@babel/core": "^7.25.2",
     "@testing-library/react-native": "^12.6.1",
     "@tsconfig/react-native": "^3.0.9",
