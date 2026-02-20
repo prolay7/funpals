@@ -1090,6 +1090,25 @@ npm run mobile:install
 
 ---
 
+#### Metro fails — `Cannot find module '@react-native/metro-config'`
+
+```
+Error: Cannot find module '@react-native/metro-config'
+Require stack:
+- .../apps/mobile/metro.config.js
+```
+
+**Cause:** `@react-native/metro-config` was not listed in `apps/mobile/devDependencies`, so it wasn't installed locally.
+
+**Fix:** It is now declared as `^0.74.83` in `apps/mobile/package.json`. If you cloned the repo before this fix, re-run the install:
+```bash
+npm run mobile:install
+# or:
+cd apps/mobile && npm install --legacy-peer-deps
+```
+
+---
+
 ### Metro Monorepo Config
 
 `metro.config.js` is configured so Metro can resolve:
