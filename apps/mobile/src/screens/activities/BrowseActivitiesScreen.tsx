@@ -30,7 +30,7 @@ export default function BrowseActivitiesScreen({ navigation }: any) {
         : <FlatList data={data ?? []} keyExtractor={(i: any) => i.id} contentContainerStyle={{ padding: 16 }}
             numColumns={2} columnWrapperStyle={{ gap: 12 }}
             renderItem={({ item }: any) => (
-              <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ActivityDetail', { activity: item })}>
+              <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ActivityDetail', { activityId: item.id, title: item.title })}>
                 {item.image_url && <FastImage source={{ uri: item.image_url }} style={styles.cardImg} />}
                 <View style={{ padding: 10 }}>
                   <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
