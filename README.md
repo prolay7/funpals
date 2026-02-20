@@ -870,6 +870,129 @@ cd apps/mobile && npx react-native run-ios
 
 ---
 
+### Testing & Simulation
+
+This is a **bare React Native** app (no Expo). It compiles to native code and cannot run directly in a browser. Use one of the options below to test the app on Windows, macOS, or in the cloud.
+
+---
+
+#### Option 1 — Android Emulator *(recommended on Windows)*
+
+The best local option on Windows. Fully free, no physical device required.
+
+**One-time setup:**
+1. Download and install [Android Studio](https://developer.android.com/studio)
+2. Open **SDK Manager** → install **Android SDK Platform 34**
+3. Open **Device Manager** → **Create Virtual Device** → choose *Pixel 7* → select *API 34* system image → Finish
+4. Add the Google Maps API key to `apps/mobile/android/app/src/main/AndroidManifest.xml` (required for `react-native-maps`):
+   ```xml
+   <meta-data android:name="com.google.android.geo.API_KEY" android:value="YOUR_KEY"/>
+   ```
+
+**Run the app:**
+```bash
+# Terminal 1 — start Metro bundler
+cd apps/mobile
+npx react-native start
+
+# Terminal 2 — launch on the running emulator
+npx react-native run-android
+```
+
+> **Tip:** Make sure the emulator is already running before executing `run-android`, or pass `--deviceId` to target a specific emulator.
+
+---
+
+#### Option 2 — iOS Simulator *(macOS only)*
+
+Requires a Mac with Xcode 15+ installed.
+
+**One-time setup:**
+```bash
+# Install CocoaPods dependencies
+cd apps/mobile/ios && pod install
+```
+
+Add the Google Maps API key to `apps/mobile/ios/Funpals/Info.plist`:
+```xml
+<key>GMSApiKey</key>
+<string>YOUR_KEY</string>
+```
+
+**Run the app:**
+```bash
+# Terminal 1 — start Metro bundler
+cd apps/mobile
+npx react-native start
+
+# Terminal 2 — launch on the iOS Simulator
+npx react-native run-ios
+
+# Target a specific device
+npx react-native run-ios --simulator="iPhone 15 Pro"
+```
+
+---
+
+#### Option 3 — Physical Android Device *(easiest if you have a phone)*
+
+No emulator installation required.
+
+1. On your Android phone go to **Settings → About Phone** → tap **Build Number** 7 times to unlock Developer Options
+2. Go to **Settings → Developer Options** → enable **USB Debugging**
+3. Connect the phone via USB cable
+4. Verify it is detected:
+   ```bash
+   adb devices
+   # Should list your device, e.g.: emulator-5554 device
+   ```
+5. Run the app:
+   ```bash
+   cd apps/mobile
+   npx react-native start          # Terminal 1
+   npx react-native run-android    # Terminal 2
+   ```
+
+> For wireless debugging (Android 11+): **Developer Options → Wireless Debugging → Pair device with pairing code**, then use `adb pair <ip>:<port>`.
+
+---
+
+#### Option 4 — Appetize.io *(browser-based, shareable)*
+
+Run your app inside a browser — no simulator installation needed. Useful for sharing a demo link with stakeholders.
+
+**Steps:**
+1. Build a debug APK:
+   ```bash
+   cd apps/mobile/android
+   ./gradlew assembleDebug
+   # Output: android/app/build/outputs/apk/debug/app-debug.apk
+   ```
+2. Go to [appetize.io](https://appetize.io) → **Upload** your `.apk`
+3. Appetize gives you a shareable browser URL that runs Android in the cloud
+
+> **Free tier:** 100 minutes/month. Paid plans available for heavier use.
+> **iOS on Appetize:** Requires a signed `.ipa` built on macOS.
+
+---
+
+#### Why React Native Web doesn't work for this project
+
+Several dependencies used by this app have **no web support** and would need to be replaced or mocked before the app could run in a browser:
+
+| Library | Web support |
+|---------|-------------|
+| `react-native-maps` | ❌ No |
+| `react-native-fast-image` | ❌ No |
+| `react-native-push-notification` | ❌ No |
+| `react-native-google-mobile-ads` | ❌ No |
+| `react-native-image-picker` | ❌ No |
+| `@react-navigation/stack` | ⚠️ Partial |
+
+Use **Option 1** (Android Emulator) or **Option 4** (Appetize.io) for browser-accessible testing instead.
+
+---
+
 ### Metro Monorepo Config
 
 `metro.config.js` is configured so Metro can resolve:
@@ -930,6 +1053,137 @@ config.resolver.nodeModulesPaths = [
 | Gestures | react-native-gesture-handler + react-native-reanimated |
 | Storage | @react-native-async-storage/async-storage |
 | Sharing | react-native-share |
+
+---
+
+### Screen Implementation Plan
+
+The mobile UI is built in **8 phases**. All screens use pure React Native `StyleSheet` (no third-party UI library), brand colours from `theme/colors.ts`, and are `SafeAreaView`-aware.
+
+---
+
+#### Current State
+
+| Area | Status |
+|---|---|
+| Auth flow (Splash → Landing → Login → Register) | ✅ Done |
+| Main tab shell (Home, Nearby, Chat, Activities, Profile) | ✅ Done |
+| `ActivityBubble` floating widget | ✅ Done |
+| `useWebSocket` hook (singleton, auto-reconnect) | ✅ Done |
+| Redux store (auth, chat, ui slices) | ✅ Done |
+| Theme (`colors.ts`, `typography.ts`) | ✅ Done |
+
+---
+
+#### Phase 1 — Infrastructure Fixes
+
+- Fix `API_BASE` URL: port `3000` → `4000` in `utils/api.ts`
+- Install missing `@tanstack/react-query` (used in `NearbyScreen` but absent from `package.json`)
+- Restructure `AppNavigator` / `MainTabs` to include nested stack navigators so sub-screens (ChatRoom, UserDetail, etc.) are reachable from tabs
+
+---
+
+#### Phase 2 — Common Components
+
+Shared UI building blocks used across all screens:
+
+| Component | Purpose |
+|---|---|
+| `AppHeader` | Consistent header with back button, title, optional right action |
+| `Avatar` | Circular avatar with presence dot (online / on-call / offline) |
+| `LoadingSpinner` | Full-screen and inline loading states |
+| `EmptyState` | Empty list placeholder with icon + message |
+| `Toast` | Slide-in success / error notification |
+| `PrimaryButton` | Reusable CTA button with loading state |
+
+---
+
+#### Phase 3 — Chat Screens
+
+Complete the end-to-end chat flow:
+
+| Screen / Component | Details |
+|---|---|
+| `ChatRoomScreen` | Message list with infinite scroll (older messages), real-time WS append, typing indicator |
+| `MessageBubble` | Sent (teal, right-aligned) vs received (white, left-aligned), timestamp |
+| `ChatInput` | Multiline text input + send button, emits `typing` WS events |
+| `TypingIndicator` | Animated three-dot indicator when others are typing |
+
+---
+
+#### Phase 4 — Profile Screens
+
+| Screen / Component | Details |
+|---|---|
+| `EditProfileScreen` | Bio, interests (multi-select chips), age range, zip, expertise slider |
+| `UserDetailScreen` | View another user's profile, skills, goals — invite to meet or message |
+| `SkillBadge` | Pill badge colour-coded by status (`can_do` / `learning` / `interested`) |
+
+---
+
+#### Phase 5 — Activities & Calendar
+
+| Screen | Details |
+|---|---|
+| `ActivityDetailScreen` | Full activity detail, external link, join button |
+| `CalendarScreen` | Monthly calendar (`react-native-calendars`), event dots on dates |
+| `EventDetailScreen` | Event info, RSVP buttons (going / maybe / declined) |
+
+---
+
+#### Phase 6 — Social (Posts, Questions, Share)
+
+| Screen | Details |
+|---|---|
+| `OpenPostsScreen` | Post feed + create new post (title, content, tags) |
+| `OpenQuestionsScreen` | Question feed + ask new question |
+| `GlobalShareScreen` | Share text content to a channel or globally |
+
+---
+
+#### Phase 7 — Search
+
+| Screen | Details |
+|---|---|
+| `SearchScreen` | Global search across users, posts, questions, activities — tabbed results |
+
+---
+
+#### Phase 8 — Nearby Enhancements
+
+Improvements to the existing `NearbyScreen`:
+
+| Addition | Details |
+|---|---|
+| `RadiusChips` | Quick-select radius: 10 / 25 / 50 / 100 miles |
+| `NearbyUserCard` | Card with avatar, presence dot, Meet / Message action buttons |
+| `MapView` integration | `react-native-maps` pins for nearby users |
+
+---
+
+#### Screen Inventory
+
+| Screen | Tab / Stack | Phase | Status |
+|---|---|---|---|
+| `SplashSequenceScreen` | Auth | — | ✅ Done |
+| `LandingScreen` | Auth | — | ✅ Done |
+| `LoginScreen` | Auth | — | ✅ Done |
+| `RegisterScreen` | Auth | — | ✅ Done |
+| `HomeScreen` | Main Tab | — | ✅ Done |
+| `NearbyScreen` | Main Tab | — | ✅ Done |
+| `ChannelListScreen` | Chat Tab | — | ✅ Done |
+| `BrowseActivitiesScreen` | Activities Tab | — | ✅ Done |
+| `ProfileScreen` | Profile Tab | — | ✅ Done |
+| `ChatRoomScreen` | Chat Stack | 3 | ⏳ Pending |
+| `EditProfileScreen` | Profile Stack | 4 | ⏳ Pending |
+| `UserDetailScreen` | Nearby / Chat Stack | 4 | ⏳ Pending |
+| `ActivityDetailScreen` | Activities Stack | 5 | ⏳ Pending |
+| `CalendarScreen` | Main Tab | 5 | ⏳ Pending |
+| `EventDetailScreen` | Calendar Stack | 5 | ⏳ Pending |
+| `OpenPostsScreen` | Main Tab | 6 | ⏳ Pending |
+| `OpenQuestionsScreen` | Main Tab | 6 | ⏳ Pending |
+| `GlobalShareScreen` | Main Tab | 6 | ⏳ Pending |
+| `SearchScreen` | Main Tab | 7 | ⏳ Pending |
 
 ---
 
