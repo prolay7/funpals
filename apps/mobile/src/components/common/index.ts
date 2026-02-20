@@ -3,4 +3,5 @@ export { default as Avatar }         from './Avatar';
 export { default as EmptyState }     from './EmptyState';
 export { default as LoadingSpinner } from './LoadingSpinner';
 export { default as PrimaryButton }  from './PrimaryButton';
+export { default as SkillBadge }     from './SkillBadge';
 export { default as Toast }          from './Toast';
