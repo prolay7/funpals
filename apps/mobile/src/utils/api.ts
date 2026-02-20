@@ -5,8 +5,8 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const API_BASE = __DEV__ ? 'http://localhost:3000/api/v1' : 'https://api.funpals.com/api/v1';
-export const WS_URL   = __DEV__ ? 'ws://localhost:3000/ws'       : 'wss://api.funpals.com/ws';
+export const API_BASE = __DEV__ ? 'http://localhost:4000/api/v1' : 'https://api.funpals.com/api/v1';
+export const WS_URL   = __DEV__ ? 'ws://localhost:4000/ws'       : 'wss://api.funpals.com/ws';
 
 export const apiClient = axios.create({ baseURL: API_BASE, timeout: 10_000 });
 

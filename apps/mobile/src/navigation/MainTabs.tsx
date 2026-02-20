@@ -1,35 +1,55 @@
 /**
  * MainTabs.tsx — Bottom tab navigator for authenticated users.
+ * Each tab hosts its own stack so sub-screens (ChatRoom, UserDetail, etc.)
+ * sit inside the correct tab and keep the tab bar visible.
+ *
  * Tabs: Home | Nearby | Chat | Activities | Profile
  */
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text } from 'react-native';
-import HomeScreen       from '../screens/home/HomeScreen';
-import NearbyScreen     from '../screens/nearby/NearbyScreen';
-import ChannelListScreen from '../screens/chat/ChannelListScreen';
-import BrowseActivitiesScreen from '../screens/activities/BrowseActivitiesScreen';
-import ProfileScreen    from '../screens/profile/ProfileScreen';
-import { colors }       from '../theme/colors';
+import HomeStack       from './HomeStack';
+import NearbyStack     from './NearbyStack';
+import ChatStack       from './ChatStack';
+import ActivitiesStack from './ActivitiesStack';
+import ProfileStack    from './ProfileStack';
+import { colors }      from '../theme/colors';
 
 const Tab = createBottomTabNavigator();
-const icons: Record<string, string> = { Home: '🏠', Nearby: '📍', Chat: '💬', Activities: '⚡', Profile: '👤' };
+
+const icons: Record<string, string> = {
+  HomeTab:       '🏠',
+  NearbyTab:     '📍',
+  ChatTab:       '💬',
+  ActivitiesTab: '⚡',
+  ProfileTab:    '👤',
+};
+
+const labels: Record<string, string> = {
+  HomeTab:       'Home',
+  NearbyTab:     'Nearby',
+  ChatTab:       'Chat',
+  ActivitiesTab: 'Activities',
+  ProfileTab:    'Profile',
+};
 
 export default function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: () => <Text style={{ fontSize: 22 }}>{icons[route.name]}</Text>,
+        tabBarIcon:              () => <Text style={{ fontSize: 22 }}>{icons[route.name]}</Text>,
+        tabBarLabel:             labels[route.name],
         tabBarActiveTintColor:   colors.accent,
         tabBarInactiveTintColor: colors.textMuted,
-        headerShown: false,
+        tabBarStyle:             { backgroundColor: colors.surface, borderTopColor: colors.border },
+        headerShown:             false,
       })}
     >
-      <Tab.Screen name="Home"       component={HomeScreen} />
-      <Tab.Screen name="Nearby"     component={NearbyScreen} />
-      <Tab.Screen name="Chat"       component={ChannelListScreen} />
-      <Tab.Screen name="Activities" component={BrowseActivitiesScreen} />
-      <Tab.Screen name="Profile"    component={ProfileScreen} />
+      <Tab.Screen name="HomeTab"       component={HomeStack} />
+      <Tab.Screen name="NearbyTab"     component={NearbyStack} />
+      <Tab.Screen name="ChatTab"       component={ChatStack} />
+      <Tab.Screen name="ActivitiesTab" component={ActivitiesStack} />
+      <Tab.Screen name="ProfileTab"    component={ProfileStack} />
     </Tab.Navigator>
   );
 }
